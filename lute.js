@@ -18,10 +18,13 @@ var beatTimes = null;
 var source = null;
 
 // params
+
+var initial_angle = 0.05;
 var delay = 30; // ms to wait before redrawing
 var thresh_factor = 125; // divide 2pi by this to obtain threshold
 // how close to 0 does a point have to be to play
 var thresh = (Math.PI * 2) / thresh_factor;
+var fade_time = 0.01; // seconds
 
 // pick 'beats' or 'segs' as the unit of playback
 // 'beats' means use beats as computed by librosa
@@ -102,11 +105,20 @@ function playSegsWithDelay(i, cb) {
 function playSeg(start, duration) {
 	var lilSource = context.createBufferSource();
 	var lilGain = context.createGain();
+	var currTime = context.currentTime;
+
 	lilSource.buffer = audioBuffer;
-	// lilSource.connect(context.destination);
 	lilSource.connect(lilGain);
 	lilGain.connect(context.destination)
+
+	// fade in
+	lilGain.gain.linearRampToValueAtTime(0, currTime);
+	lilGain.gain.linearRampToValueAtTime(1, currTime + fade_time);
+	// play
 	lilSource.start(0, startTime, duration);
+	// fade out
+	lilGain.gain.linearRampToValueAtTime(1, currTime + duration-fade_time);
+	lilGain.gain.linearRampToValueAtTime(0, currTime + duration);
 }
 
 function playNthUnit(n) {
@@ -135,20 +147,22 @@ function playNthBeat(n) {
 function playNthSeg(n) {
 	startTime = beatTimes[n][0];
 	duration = beatTimes[n][1];
-	// console.log('playing beat ',n,' at ',startTime,' for ',duration);
 	playSeg(startTime, duration);				
 }
 
-function get_phyllo (num_points, angle) {
+function getPoints (num_points, angle) {
 	c=1;
 	ret_array = new Array(num_points);
 	max_r=0;
 	for (n=1; n<=num_points; n++) {
+		
 		r=c*(n);
+		
+		// MESS WITH THIS FUNCTION FOR GOOD TIMES !!!
 		theta=angle*Math.sqrt(n);
 		// theta = angle * Math.tan(n);
 
-		if (angle > 0.1 && (Math.abs(theta % (Math.PI * 2)) < thresh) && n <=beatTimes.length) {
+		if (angle > initial_angle && (Math.abs(theta % (Math.PI * 2)) < thresh) && n <=beatTimes.length) {
 			playNthUnit(n-1);
 		}
 
@@ -190,8 +204,9 @@ svg.append("a")
 	.attr("ry", 10);
 	
 num_points=630;
+// num_points = 237;
 
-var phyllo_set = get_phyllo(num_points,angle);
+var phyllo_set = getPoints(num_points,angle);
 dataset=phyllo_set[0];
 max_r=phyllo_set[1];
 var xScale = d3.scale.linear().domain([-1*max_r, 1*max_r]).range([.05*w, w*.95])
@@ -202,7 +217,7 @@ var angle = 0;
 function startLoop() {
 	loadSound(audioFilename, function() {
 		return(setInterval(function() {
-			var phyllo_set = get_phyllo(num_points,angle);
+			var phyllo_set = getPoints(num_points,angle);
 			dataset=phyllo_set[0];
 			max_r=phyllo_set[1];
 		
