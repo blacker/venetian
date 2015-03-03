@@ -6,7 +6,7 @@
 
 
 // the sound
-var audioFilename = 'venice/01 - Joan Ambrosio Dalza - Calata ala spagnola.wav';
+var audioFilename = 'venice/01 - Joan Ambrosio Dalza - Calata ala spagnola.mp3';
 // beat times from librosa
 var beatTimesFilename = 'venice/beat_times.json';
 // alternatively, segment times and durations from the echonest
