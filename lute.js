@@ -6,6 +6,7 @@
 
 
 // the sound
+tempo = 125.2841
 var audioFilename = 'venice/01 - Joan Ambrosio Dalza - Calata ala spagnola.mp3';
 // beat times from librosa
 var beatTimesFilename = 'venice/beat_times.json';
@@ -20,11 +21,13 @@ var source = null;
 // params
 
 var initial_angle = 0.05;
-var delay = 30; // ms to wait before redrawing
-var thresh_factor = 125; // divide 2pi by this to obtain threshold
+var delay = 60; // ms to wait before redrawing
+// var angle_increment = 0.01;
+var angle_increment = Math.PI / 16;
+var thresh_factor = 250; // divide 2pi by this to obtain threshold
 // how close to 0 does a point have to be to play
 var thresh = (Math.PI * 2) / thresh_factor;
-var fade_time = 0.01; // seconds
+var fade_time = 0.024; // seconds
 
 // pick 'beats' or 'segs' as the unit of playback
 // 'beats' means use beats as computed by librosa
@@ -159,8 +162,12 @@ function getPoints (num_points, angle) {
 		r=c*(n);
 		
 		// MESS WITH THIS FUNCTION FOR GOOD TIMES !!!
-		theta=angle*Math.sqrt(n);
+		// theta=angle*Math.sqrt(n);
 		// theta = angle * Math.tan(n);
+		// theta = angle * Math.cos(Math.sqrt(n));
+		// theta = angle * Math.cos(Math.pow(n, 2));
+		// theta = angle * Math.pow(n, 1/3.);
+		theta = angle * Math.log(n);
 
 		if (angle > initial_angle && (Math.abs(theta % (Math.PI * 2)) < thresh) && n <=beatTimes.length) {
 			playNthUnit(n-1);
@@ -192,6 +199,7 @@ var svg = d3.select("div.centre")
 			.append("svg")
 			.attr("width", w)
 			.attr("height", h);
+
 svg.append("a")
 	.attr("xlink:href", "javascript:stopLoop();")
 	.append("rect")  
@@ -199,12 +207,12 @@ svg.append("a")
 	.attr("y", 0)
 	.attr("height", w)
 	.attr("width", h)
-	.style("fill", "white")
+	.style("fill", "#a50f15")
 	.attr("rx", 10)
 	.attr("ry", 10);
 	
-num_points=630;
-// num_points = 237;
+// num_points=630;
+num_points = 237;
 
 var phyllo_set = getPoints(num_points,angle);
 dataset=phyllo_set[0];
@@ -221,7 +229,7 @@ function startLoop() {
 			dataset=phyllo_set[0];
 			max_r=phyllo_set[1];
 		
-			angle += .01;
+			angle += angle_increment;
 			redraw(angle);
 		}, delay))
 	});
@@ -254,6 +262,7 @@ function redraw(angle) {
 	   .attr("r", function(d) {
 	   		return w/100;
 	   })
+	   .attr("fill", "#fec44f")
 	
 	var circleExit = circle.exit().remove();
 	
