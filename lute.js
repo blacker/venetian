@@ -35,6 +35,7 @@ var unit = 'beats';
 // 'segs' means use segments as computed by the echonest
 // var unit = 'segs';
 
+window.AudioContext = window.AudioContext||window.webkitAudioContext;
 var context = new AudioContext();
 
 function loadSound(url, cb) {
@@ -168,6 +169,9 @@ function getPoints (num_points, angle) {
 		// theta = angle * Math.cos(Math.pow(n, 2));
 		// theta = angle * Math.pow(n, 1/3.);
 		theta = angle * Math.log(n);
+		// theta = angle * Math.tan(Math.pow(n, 1/ 13));
+		// theta = angle * Math.pow(100 * Math.PI, 1/n);
+		// theta = angle * Math.log(1 / n);
 
 		if (angle > initial_angle && (Math.abs(theta % (Math.PI * 2)) < thresh) && n <=beatTimes.length) {
 			playNthUnit(n-1);
